@@ -1,0 +1,154 @@
+﻿@model IEnumerable<WebKendoUI.Models.NhanVien>
+@{
+    ViewBag.Title = "GridShow";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@*@(Html.Kendo().Grid<WebKendoUI.Models.NhanVien>()
+          .Name("grid")
+          .Columns(columns =>
+          {
+              columns.Bound(product => product.Id).Title("Mã nhân viên");
+              columns.Bound(product => product.UserName).Title("Tên nhân viên");
+              columns.Bound(product => product.Password).Title("Password");
+              columns.Bound(product => product.Email).Title("Email");
+              columns.Bound(product => product.Tel).Title("Số điện thoại");
+
+              columns.Command(command => { command.Edit(); command.Destroy(); }).Width(160);
+          })
+          .ToolBar(toolbar => toolbar.Create())
+          .Editable(editable => editable.Mode(GridEditMode.PopUp))
+          .Pageable()
+          .Sortable()
+          .HtmlAttributes(new { style = "height:500px;" })
+          .Filterable()
+          .Groupable()
+          .DataSource(dataSource => dataSource
+              .Ajax()
+              .PageSize(20)
+              .Events(events => events.Error("error_handler"))
+              .Model(model => model.Id(product => product.Id))
+              .Read(read => read.Action("Employer_Read", "NhanVien"))
+              .Create(create => create.Action("Create", "NhanVien"))
+              .Update(update => update.Action("Update", "NhanVien"))
+              .Destroy(destroy => destroy.Action("Destroy", "NhanVien"))
+          )
+)
+
+<script type="text/javascript">
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+</script>*@
+
+<div id="example">
+    <h1 class="text-primary">DANH SÁCH NHÂN VIÊN</h1>
+    <div id="grid"></div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+         dataSource = new kendo.data.DataSource({
+             transport: {
+                 read: {
+                     url: "/NhanVien/read",
+                     dataType: "json",
+                     type: "GET"
+                 },
+
+                 create: {
+                     url: "/NhanVien/create",
+                     dataType: "json",
+                     contentType: 'application/json; charset=utf-8',
+                     type: "POST"
+                 },
+                 update: {
+                     url: "/NhanVien/Update",
+                     dataType: "json",
+                     contentType: 'application/json; charset=utf-8',
+                     type: "PUT"
+                 },
+                 destroy: {
+                     url: "/NhanVien/Destroy",
+                     dataType: "json",
+                     contentType: 'application/json; charset=utf-8',
+                     type: "DELETE"
+                 },
+                 parameterMap: function (options, operation) {
+                     if (operation !== "read" && options.models) {
+                         return { models: kendo.stringify(options.models) };
+                     }
+                    else {
+                        return JSON.stringify(options);
+                    }
+                 }
+         },
+             batch: true,
+             pageSize: 10,
+             schema: {
+                 model: {
+                     id: "id",
+                     fields: {
+                         Id: { validation: { required: true }, nullable: true },
+                         UserName: { validation: { required: true } },
+                         Password: { type: "string" },
+                         Email: { validation: { email: true} },
+                         Tel: { type: "string" },
+                     }
+                 }
+             },
+         });
+
+         $("#grid").kendoGrid({
+             dataSource: dataSource,
+             navigatable: true,
+             pageable: true,
+             height: 500,
+             toolbar: [{ name: "create", text: "Thêm nhân viên mới" }, "search"],
+             columns: [
+                 { field: "Id", title: "Mã nhân viên", width: 70 },
+                 { field: "UserName", title: "Tên nhân viên", width: 100 },
+                 { field: "Password", title: "Mật khẩu", width: 100},
+                 { field: "Email", title: "Email", width: 150 },
+                 { field: "Tel", title: "Số điện thoại", width: 70 },
+                 { command: ["edit", "destroy"], title: "Hành động", width: 90 }],
+             editable: {
+                mode: "popup",
+                update: true,
+                destroy: true,
+                confirmation: "Bạn có muốn xóa nhân viên này không?"
+             },
+             edit: function (e) {
+                e.container.find("#Id-form-label.k-label.k-form-label").hide();
+                e.container.find("#Id.k-input-inner").hide();
+            },
+         });
+
+        function onRequestEnd(e) {
+            if (e.type == "create") {
+                e.sender.read();
+            }
+            else if (e.type == "update") {
+                e.sender.read();
+            }
+            
+        }
+    });
+</script>
+
+<style>
+    h1 {
+        text-align: center;
+    }
+
+</style>
